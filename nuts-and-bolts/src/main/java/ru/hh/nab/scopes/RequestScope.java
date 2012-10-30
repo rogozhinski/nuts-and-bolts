@@ -18,10 +18,67 @@ public class RequestScope implements TransferrableScope {
     INSTANCE
   }
 
+  public static class RequestContext{
+    protected static final String X_REQUEST_ID = "x-requestContext-id";
+    protected static final String X_REQUEST_ID_DEFAULT = "NoRequestIdProvided";
+    protected static final String X_HHID_PERFORMER = "x-hhid-performer";
+    protected static final String X_HHID_PERFORMER_DEFAULT = "NoPerformerTokenProvided";
+    protected static final String X_UID = "x-uid";
+    protected static final String X_UID_DEFAULT = "NoUidProvided";
+    protected static final String REQ_REMOTE_ADDR = "req.remote-addr";
+    protected static final String REQ_REMOTE_ADDR_DEFAULT = "NoRemoteAddrProvided";
+    private final String requestId;
+    private final String performerToken;
+    private final String uid;
+    private final String remoteAddr;
+    public RequestContext(String requestId, String performerToken, String uid, String remoteAddr)  {
+      this.requestId = requestId;
+      this.performerToken = performerToken;
+      this.uid = uid;
+      this.remoteAddr = remoteAddr;
+    }
+    public void setLoggingContext() {
+      storeValue("req.h." + X_REQUEST_ID, requestId, X_REQUEST_ID_DEFAULT);
+      storeValue("req.h." + X_HHID_PERFORMER, performerToken, X_HHID_PERFORMER_DEFAULT);
+      storeValue("req.h." + X_UID, uid, X_UID_DEFAULT);
+      storeValue(REQ_REMOTE_ADDR, remoteAddr, REQ_REMOTE_ADDR_DEFAULT);
+    }
+    private void storeValue(String name, String value, String defaultValue) {
+      MDC.put(name, value != null ? value : defaultValue);
+    }
+    public void clearLoggingContext() {
+      MDC.clear();
+    }
+    public GrizzlyRequest getGrizzlyRequest() {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  public static final class GrizzlyRequestContext extends RequestContext {
+    private final GrizzlyRequest request;
+    public GrizzlyRequestContext(GrizzlyRequest request)  {
+      super(
+          request.getHeader(X_REQUEST_ID),
+          request.getHeader(X_HHID_PERFORMER),
+          request.getHeader(X_UID),
+          request.getRemoteAddr()
+      );
+      this.request = request;
+    }
+    @Override
+    public GrizzlyRequest getGrizzlyRequest() {
+      return request;
+    }
+  }
+
   private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
 
-  public static void enter(GrizzlyRequest req, TimingsLogger timingsLogger) {
-    new RequestScopeClosure(req, timingsLogger).enter();
+  public static void enter(GrizzlyRequest request, TimingsLogger timingsLogger) {
+    enter(new GrizzlyRequestContext(request), timingsLogger);
+  }
+
+  public static void enter(RequestContext requestContext, TimingsLogger timingsLogger) {
+    new RequestScopeClosure(requestContext, timingsLogger).enter();
   }
 
   public static void leave() {
@@ -32,7 +89,14 @@ public class RequestScope implements TransferrableScope {
     RequestScopeClosure cls = closure.get();
     if (cls == null)
       throw new OutOfScopeException("Out of RequestScope");
-    return cls.request;
+    return cls.requestContext.getGrizzlyRequest();
+  }
+
+  public static RequestContext currentRequestContext() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null)
+      throw new OutOfScopeException("Out of RequestScope");
+    return cls.requestContext;
   }
 
   public static RequestScopeClosure currentClosure() {
@@ -79,17 +143,12 @@ public class RequestScope implements TransferrableScope {
 
   public static class RequestScopeClosure implements ScopeClosure {
 
-    private static final String X_REQUEST_ID = "x-request-id";
-    private static final String X_HHID_PERFORMER = "x-hhid-performer";
-    private static final String X_UID = "x-uid";
-    private static final String REQ_REMOTE_ADDR = "req.remote-addr";
-
-    private final GrizzlyRequest request;
+    private final RequestContext requestContext;
     private final TimingsLogger timingsLogger;
     private final Map<Key<?>, Object> objects = Maps.newHashMap();
 
-    RequestScopeClosure(GrizzlyRequest request, TimingsLogger timingsLogger) {
-      this.request = request;
+    RequestScopeClosure(RequestContext requestContext, TimingsLogger timingsLogger) {
+      this.requestContext = requestContext;
       this.timingsLogger = timingsLogger;
     }
 
@@ -108,23 +167,16 @@ public class RequestScope implements TransferrableScope {
     @Override
     public void enter() {
       Preconditions.checkState(RequestScope.closure.get() == null);
-      storeHeaderValue(request, X_REQUEST_ID);
-      storeHeaderValue(request, X_HHID_PERFORMER);
-      storeHeaderValue(request, X_UID);
-      MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
+      requestContext.setLoggingContext();
       RequestScope.closure.set(this);
       timingsLogger.enterTimedArea();
      }
-
-    private void storeHeaderValue(GrizzlyRequest req, String header) {
-      MDC.put("req.h." + header, req.getHeader(header));
-    }
 
     @Override
     public void leave() {
       Preconditions.checkState(RequestScope.closure.get() == this);
       timingsLogger.leaveTimedArea();
-      MDC.clear();
+      requestContext.clearLoggingContext();
       RequestScope.closure.remove();
     }
   }
