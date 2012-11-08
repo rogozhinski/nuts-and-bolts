@@ -108,16 +108,17 @@ public class RequestScope implements TransferrableScope {
     @Override
     public void enter() {
       Preconditions.checkState(RequestScope.closure.get() == null);
-      storeHeaderValue(request, X_REQUEST_ID);
-      storeHeaderValue(request, X_HHID_PERFORMER);
-      storeHeaderValue(request, X_UID);
+      storeHeaderValue(request, X_REQUEST_ID, "NoRequestIdProvided");
+      storeHeaderValue(request, X_HHID_PERFORMER, "NoPerformerTokenProvided");
+      storeHeaderValue(request, X_UID, "NoUidProvided");
       MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
       RequestScope.closure.set(this);
       timingsLogger.enterTimedArea();
      }
 
-    private void storeHeaderValue(GrizzlyRequest req, String header) {
-      MDC.put("req.h." + header, req.getHeader(header));
+    private void storeHeaderValue(GrizzlyRequest req, String header, String defaultValue) {
+      String value = req.getHeader(header);
+      MDC.put("req.h." + header, value != null ? value : defaultValue);
     }
 
     @Override
