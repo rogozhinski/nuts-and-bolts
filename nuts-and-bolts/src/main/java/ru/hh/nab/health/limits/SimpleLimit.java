@@ -3,7 +3,6 @@ package ru.hh.nab.health.limits;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import ru.hh.nab.health.monitoring.LoggingContext;
 
 public class SimpleLimit implements Limit {
@@ -11,13 +10,14 @@ public class SimpleLimit implements Limit {
   private final AtomicInteger current = new AtomicInteger(0);
   private final LeakDetector detector;
   private final String name;
-  
+  private final int loggingThreshold;
   private final static Logger LOGGER = LoggerFactory.getLogger(SimpleLimit.class);
 
-  public SimpleLimit(int max, LeakDetector leakDetector, String name) {
+  public SimpleLimit(int max, LeakDetector leakDetector, String name, Integer loggingThreshold) {
     this.max = max;
     this.detector = leakDetector;
     this.name = name;
+    this.loggingThreshold = loggingThreshold == null ? 0 : loggingThreshold;
   }
 
   @Override
@@ -29,19 +29,25 @@ public class SimpleLimit implements Limit {
       return null;
     }
 
+    final boolean needLogging = current.get() >= loggingThreshold;
+
     LeaseToken token = new LeaseToken() {
       @Override
       public void release() {
         detector.released(this);
         current.decrementAndGet();
         lc.enter();
-        LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current));
+        if (needLogging) {
+          LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current));
+        }
         lc.leave();
       }
     };
     detector.acquired(token);
 
-    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, token.hashCode(), current));
+    if (needLogging) {
+      LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, token.hashCode(), current));
+    }
     return token;
   }
 
