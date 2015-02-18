@@ -19,10 +19,24 @@
   <name>nuts'n'bolts parent module</name>
   <version>1.4.51-SNAPSHOT</version>
 
+  <profiles>
+    <profile>
+      <id>grizzly2.3.11</id>
+      <properties>
+        <grizzly.version>2.3.11</grizzly.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>grizzly2.3.18</id>
+      <properties>
+        <grizzly.version>2.3.18</grizzly.version>
+      </properties>
+    </profile>
+  </profiles>
+
   <properties>
-      <grizzly.version>2.3.17</grizzly.version>
-      <jersey.version>1.18.1</jersey.version>
-      <guice.version>3.0</guice.version>
+    <jersey.version>1.18.1</jersey.version>
+    <guice.version>3.0</guice.version>
   </properties>
 
   <dependencyManagement>
