@@ -20,7 +20,7 @@
   <version>1.4.51-SNAPSHOT</version>
 
   <properties>
-      <grizzly.version>2.3.17</grizzly.version>
+      <grizzly.version>[2.3.11,2.3.18]</grizzly.version>
       <jersey.version>1.18.1</jersey.version>
       <guice.version>3.0</guice.version>
   </properties>
@@ -89,6 +89,7 @@
         <groupId>org.glassfish.grizzly</groupId>
         <artifactId>grizzly-http-server</artifactId>
         <version>${grizzly.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <!-- Grizzly monitoring -->
@@ -96,16 +97,19 @@
          <groupId>org.glassfish.grizzly</groupId>
          <artifactId>grizzly-framework-monitoring</artifactId>
          <version>${grizzly.version}</version>
+         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.glassfish.grizzly</groupId>
          <artifactId>grizzly-http-monitoring</artifactId>
          <version>${grizzly.version}</version>
+         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.glassfish.grizzly</groupId>
          <artifactId>grizzly-http-server-monitoring</artifactId>
          <version>${grizzly.version}</version>
+         <scope>provided</scope>
       </dependency>
 
       <!-- Jersey -->
