@@ -17,7 +17,7 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.4.51-SNAPSHOT</version>
+  <version>1.4.50-g2311</version>
 
   <profiles>
     <profile>
@@ -56,7 +56,7 @@
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.4.51-SNAPSHOT</version>
+        <version>1.4.50-g2311</version>
       </dependency>
 
       <dependency>
