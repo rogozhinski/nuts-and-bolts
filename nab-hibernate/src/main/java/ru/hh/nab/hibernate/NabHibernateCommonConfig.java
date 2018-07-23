@@ -9,6 +9,7 @@ import org.hibernate.integrator.spi.Integrator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 
 import javax.sql.DataSource;
@@ -22,10 +23,9 @@ import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 @EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {
 
+  @Primary
   @Bean
-  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory, DataSource routingDataSource) {
-    HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
-    simpleTransactionManager.setDataSource(routingDataSource);
+  DataSourceContextTransactionManager transactionManager(HibernateTransactionManager simpleTransactionManager) {
     return new DataSourceContextTransactionManager(simpleTransactionManager);
   }
 
@@ -34,39 +34,50 @@ public class NabHibernateCommonConfig {
     return new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
   }
 
-  @Bean
-  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, Properties hibernateProperties,
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
-    Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
-    Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
-      serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
-    sessionFactoryBean.setDataSource(dataSource);
-    sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
-    sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
-    sessionFactoryBean.setHibernateProperties(hibernateProperties);
-    return sessionFactoryBean;
-  }
+  @Configuration
+  public static class NoTxCommonConfig {
 
-  @Bean
-  BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder(Optional<Collection<Integrator>> integratorsOptional) {
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
-    integratorsOptional.ifPresent(integrators -> integrators.forEach(bootstrapServiceRegistryBuilder::applyIntegrator));
-    return bootstrapServiceRegistryBuilder;
-  }
+    @Bean
+    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, Properties hibernateProperties,
+      BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
+      Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
+      Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
+      NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
+        serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
+      sessionFactoryBean.setDataSource(dataSource);
+      sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
+      sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
+      sessionFactoryBean.setHibernateProperties(hibernateProperties);
+      return sessionFactoryBean;
+    }
 
-  @Bean
-  NabSessionFactoryBean.ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
-    return new NabSessionFactoryBean.ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
-      @Override
-      public Class<NabSessionFactoryBuilderFactory.BuilderService> getClazz() {
-        return NabSessionFactoryBuilderFactory.BuilderService.class;
-      }
+    @Bean
+    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder(Optional<Collection<Integrator>> integratorsOptional) {
+      BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
+      integratorsOptional.ifPresent(integrators -> integrators.forEach(bootstrapServiceRegistryBuilder::applyIntegrator));
+      return bootstrapServiceRegistryBuilder;
+    }
 
-      @Override
-      public NabSessionFactoryBuilderFactory.BuilderService get() {
-        return new NabSessionFactoryBuilderFactory.BuilderService();
-      }
-    };
+    @Bean
+    NabSessionFactoryBean.ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
+      return new NabSessionFactoryBean.ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
+        @Override
+        public Class<NabSessionFactoryBuilderFactory.BuilderService> getClazz() {
+          return NabSessionFactoryBuilderFactory.BuilderService.class;
+        }
+
+        @Override
+        public NabSessionFactoryBuilderFactory.BuilderService get() {
+          return new NabSessionFactoryBuilderFactory.BuilderService();
+        }
+      };
+    }
+
+    @Bean
+    HibernateTransactionManager simpleTransactionManager(SessionFactory sessionFactory, DataSource routingDataSource) {
+      HibernateTransactionManager transactionManager = new HibernateTransactionManager(sessionFactory);
+      transactionManager.setDataSource(routingDataSource);
+      return transactionManager;
+    }
   }
 }

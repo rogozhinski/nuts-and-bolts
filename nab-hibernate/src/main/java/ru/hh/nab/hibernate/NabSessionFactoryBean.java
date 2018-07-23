@@ -22,7 +22,7 @@ public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
   private final Collection<ServiceSupplier<?>> serviceSuppliers;
   private final Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers;
 
-  public NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties, BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
+  NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties, BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
       Collection<ServiceSupplier<?>> serviceSuppliers, Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers) {
     this.serviceSuppliers = new ArrayList<>(serviceSuppliers);
     this.sessionFactoryCreationHandlers = new ArrayList<>(sessionFactoryCreationHandlers);

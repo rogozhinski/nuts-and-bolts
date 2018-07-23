@@ -38,7 +38,7 @@ public final class NabSessionFactoryBuilderFactory implements SessionFactoryBuil
     return builderService.createSessionFactoryBuilder(metadata);
   }
 
-  public static class BuilderService implements Service {
+  static class BuilderService implements Service {
     SessionFactoryBuilder createSessionFactoryBuilder(MetadataImplementor metadata) {
       return new HhSessionFactoryBuilder(metadata);
     }
