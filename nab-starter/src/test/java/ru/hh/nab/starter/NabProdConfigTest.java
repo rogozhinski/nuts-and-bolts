@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,6 +23,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
 import static ru.hh.nab.starter.NabProdConfig.DATACENTER_NAME_PROPERTY;
+import ru.hh.nab.starter.server.ServerContext;
 
 public class NabProdConfigTest {
   private static final String TEST_SERVICE_NAME = "test-service";
@@ -60,7 +60,7 @@ public class NabProdConfigTest {
     assertNotNull(context.getBean("cacheFilter", FilterHolder.class));
     assertNotNull(context.getBean(MBeanServerFactoryBean.class));
     assertNotNull(context.getBean(MBeanExporter.class));
-    assertNotNull(context.getBean("jettyThreadPool", ThreadPool.class));
+    assertNotNull(context.getBean(ServerContext.class));
     assertNotNull(context.getBean(ScheduledExecutorService.class));
     assertNotNull(context.getBean(AppMetadata.class));
   }

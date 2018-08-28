@@ -1,15 +1,14 @@
 package ru.hh.nab.starter;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.DefaultResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.ServerContext;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.ServletConfig;
 
@@ -35,11 +34,10 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     JettyServer jettyServer = this.jettyServer;
     try {
       if (jettyServer == null) {
-        final FileSettings jettySettings = getBean(FileSettings.class);
-        final ThreadPool threadPool = getBean(ThreadPool.class);
         final ResourceConfig resourceConfig = createResourceConfig(this);
+        final ServerContext jettyContext = getBean(ServerContext.class);
 
-        this.jettyServer = JettyServerFactory.create(jettySettings, threadPool, resourceConfig, servletConfig, (contextHandler) -> {
+        this.jettyServer = JettyServerFactory.create(jettyContext, resourceConfig, servletConfig, (contextHandler) -> {
           configureServletContext(contextHandler, this, servletConfig);
           setServletContext(contextHandler.getServletContext());
         });

@@ -17,6 +17,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.starter.jmx.MBeanExporterFactory;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
+import ru.hh.nab.starter.server.ServerContext;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -33,6 +34,11 @@ public class NabProdConfig {
   String datacenter(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
+  }
+
+  @Bean
+  ServerContext jettyServerContext(FileSettings fileSettings) {
+    return new ServerContext(fileSettings);
   }
 
   @Bean

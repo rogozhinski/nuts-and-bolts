@@ -1,6 +1,5 @@
 package ru.hh.nab.testbase;
 
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.starter.NabApplicationContext.configureServletContext;
 import static ru.hh.nab.starter.NabApplicationContext.createResourceConfig;
+import ru.hh.nab.starter.server.ServerContext;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.ServletConfig;
@@ -63,10 +63,10 @@ final class JettyTestContainerFactory {
       LOGGER.info("Creating JettyTestContainer...");
 
       final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
-      final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
+      final ServerContext jettyContext = new ServerContext(fileSettings);
       final ResourceConfig resourceConfig = createResourceConfig(applicationContext);
 
-      jettyServer = JettyServerFactory.create(fileSettings, threadPool, resourceConfig, servletConfig,
+      jettyServer = JettyServerFactory.create(jettyContext, resourceConfig, servletConfig,
           (contextHandler) -> configureServletContext(contextHandler, applicationContext, servletConfig));
     }
 

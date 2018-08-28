@@ -8,13 +8,13 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jetty.HHServerConnector;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.jetty.RequestWithCacheLogger;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.server.ServerContext;
 
 import java.lang.management.ManagementFactory;
 import java.util.Optional;
@@ -25,10 +25,10 @@ public final class JettyServer {
   private final FileSettings jettySettings;
   private final Server server;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
-    this.jettySettings = jettySettings;
+  JettyServer(ServerContext jettyContext, ServletContextHandler servletContextHandler) {
+    jettySettings = jettyContext.getSettings();
 
-    server = new Server(threadPool);
+    server = new Server(jettyContext.getThreadPool());
     configureConnector();
     configureMBeanContainer();
     configureRequestLogger();
