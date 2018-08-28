@@ -2,19 +2,20 @@ package ru.hh.nab.example;
 
 import java.util.function.Function;
 import javax.inject.Inject;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
 import ru.hh.nab.testbase.NabTestBase;
-import ru.hh.nab.testbase.NabTestConfig;
 
 import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
 
-@ContextConfiguration(classes = {NabTestConfig.class, ExampleTestConfig.class},
+@ContextConfiguration(
+  classes = {
+      ExampleTestConfig.class,
+      ExampleServerAwareBeanTest.Config.class
+  },
   loader = NabTestBase.ContextInjectionAnnotationConfigWebContextLoader.class)
 public class ExampleServerAwareBeanTest extends NabTestBase {
 
@@ -29,13 +30,10 @@ public class ExampleServerAwareBeanTest extends NabTestBase {
     }
   }
 
-  @Override
-  protected ServletConfig getServletConfig() {
-    return new DefaultServletConfig() {
-      @Override
-      public void registerResources(ResourceConfig resourceConfig) {
-        resourceConfig.register(ExampleResource.class);
-      }
-    };
+  static class Config {
+    @Bean
+    Function<String, String> serverPortAwareBean(NabTestBase.NabTestContext ctx) {
+      return path -> ctx.baseUrl() + path;
+    }
   }
 }
