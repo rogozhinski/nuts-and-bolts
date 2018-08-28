@@ -20,8 +20,10 @@ import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheF
 import ru.hh.nab.starter.server.ServerContext;
 
 @Configuration
-@Import({NabCommonConfig.class})
-public class NabProdConfig {
+@Import({
+    NabCommonConfig.class
+})
+class NabProdConfig {
   static final String PROPERTIES_FILE_NAME = "service.properties";
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 

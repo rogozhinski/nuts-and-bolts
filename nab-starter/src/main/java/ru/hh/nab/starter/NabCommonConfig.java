@@ -8,10 +8,15 @@ import com.timgroup.statsd.StatsDClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.metrics.StatsDSender;
+import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.resource.StatusResource;
 
 @Configuration
+@Import({
+    StatusResource.class
+})
 public class NabCommonConfig {
   static final String SERVICE_NAME_PROPERTY = "serviceName";
 

@@ -20,6 +20,7 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
 
   NabApplicationContext(ServletConfig servletConfig, Class<?>... primarySources) {
     this.servletConfig = servletConfig;
+    register(NabProdConfig.class);
     register(primarySources);
     registerShutdownHook();
   }
@@ -35,9 +36,9 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     try {
       if (jettyServer == null) {
         final ResourceConfig resourceConfig = createResourceConfig(this);
-        final ServerContext jettyContext = getBean(ServerContext.class);
+        final ServerContext serverContext = getBean(ServerContext.class);
 
-        this.jettyServer = JettyServerFactory.create(jettyContext, resourceConfig, servletConfig, (contextHandler) -> {
+        this.jettyServer = JettyServerFactory.create(serverContext, resourceConfig, servletConfig, (contextHandler) -> {
           configureServletContext(contextHandler, this, servletConfig);
           setServletContext(contextHandler.getServletContext());
         });
@@ -59,9 +60,5 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     applicationContext.getBeansWithAnnotation(javax.ws.rs.Path.class)
         .forEach((name, bean) -> resourceConfig.register(bean));
     return resourceConfig;
-  }
-
-  boolean isServerRunning() {
-    return jettyServer.isRunning();
   }
 }

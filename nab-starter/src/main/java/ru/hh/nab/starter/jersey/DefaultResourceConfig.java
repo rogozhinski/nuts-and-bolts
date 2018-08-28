@@ -2,8 +2,6 @@ package ru.hh.nab.starter.jersey;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
-import ru.hh.nab.starter.resource.StatsResource;
-import ru.hh.nab.starter.resource.StatusResource;
 
 public final class DefaultResourceConfig extends ResourceConfig {
 
@@ -18,7 +16,5 @@ public final class DefaultResourceConfig extends ResourceConfig {
     register(FilteredXmlListElementProvider.General.class);
     register(FilteredXmlListElementProvider.Text.class);
     register(ResourceNameLoggingFilter.class);
-    register(StatusResource.class);
-    register(StatsResource.class);
   }
 }
