@@ -65,7 +65,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
         break;
       }
       case WARN_WITHOUT_STACK_TRACE: {
-        LOGGER.warn(exception.getMessage());
+        LOGGER.warn("{}: {}", exception.getClass().getName(), exception.getMessage());
         break;
       }
       case INFO_WITH_STACK_TRACE: {
@@ -73,7 +73,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
         break;
       }
       case INFO_WITHOUT_STACK_TRACE: {
-        LOGGER.info(exception.getMessage());
+        LOGGER.info("{}: {}", exception.getClass().getName(), exception.getMessage());
         break;
       }
       default: {

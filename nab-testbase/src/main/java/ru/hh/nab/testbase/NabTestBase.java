@@ -14,6 +14,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import java.util.concurrent.TimeUnit;
+
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static ru.hh.nab.starter.NabApplication.configureLogger;
@@ -37,7 +39,7 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   }
 
   protected ClientBuilder getClientBuilder() {
-    return ClientBuilder.newBuilder();
+    return ClientBuilder.newBuilder().connectTimeout(200000, TimeUnit.MILLISECONDS);
   }
 
   /**

@@ -7,6 +7,7 @@ import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -76,43 +77,61 @@ public class NabExceptionMappersTest extends NabTestBase {
     response = executeGet("/connectionTimeoutWrapped");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+
+//    response = executeGet("/requestTimeout");
+
+//    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
 
   @Path("/")
   public static class TestResource {
+    @GET
     @Path("/iae")
     public Response iae() {
       throw new IllegalArgumentException("IAE");
     }
 
+    @GET
     @Path("/ise")
     public Response ise() {
       throw new IllegalStateException("ISE");
     }
 
+    @GET
     @Path("/se")
     public Response se() {
       throw new SecurityException("SE");
     }
 
+    @GET
     @Path("/wae")
     public Response wae() {
       throw new WebApplicationException("WAE", 401);
     }
 
+    @GET
     @Path("/any")
     public Response any() {
       throw new RuntimeException("Any exception");
     }
 
+    @GET
     @Path("/connectionTimeout")
     public Response connectionTimeout() throws SQLException {
       throw new SQLTransientConnectionException();
     }
 
+    @GET
     @Path("/connectionTimeoutWrapped")
     public Response connectionTimeoutWrapped() {
       throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException());
+    }
+
+    @GET
+    @Path("/requestTimeout")
+    public Response requestTimeout() throws InterruptedException {
+      Thread.sleep(10000);
+      return Response.ok().build();
     }
   }
 }
