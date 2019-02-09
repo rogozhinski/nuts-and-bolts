@@ -8,6 +8,7 @@ import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.LowResourceMonitor;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -32,12 +33,14 @@ public final class JettyServer {
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
+    this.server = new Server(threadPool);
 
-    server = new Server(threadPool);
     configureConnector();
     configureMBeanContainer();
+    configureLowResourceMonitor();
     configureRequestLogger();
     configureStopTimeout();
+
     this.servletContextHandler = servletContextHandler;
     server.setHandler(servletContextHandler);
   }
@@ -89,6 +92,15 @@ public final class JettyServer {
     serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 
     server.addConnector(serverConnector);
+  }
+
+  private void configureLowResourceMonitor() {
+    LowResourceMonitor lowResourceMonitor = new LowResourceMonitor(server);
+    lowResourceMonitor.setAcceptingInLowResources(false);
+    lowResourceMonitor.setMonitorThreads(true);
+    lowResourceMonitor.setLowResourcesIdleTimeout(Optional.ofNullable(jettySettings.getInteger("lowResourcesIdleTimeoutMs")).orElse(2000));
+    lowResourceMonitor.setPeriod(Optional.ofNullable(jettySettings.getInteger("lowResourceMonitorPeriodMs")).orElse(1000));
+    server.addBean(lowResourceMonitor);
   }
 
   private void configureMBeanContainer() {

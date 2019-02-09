@@ -1,7 +1,11 @@
 package ru.hh.nab.starter.server.jetty;
 
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -27,8 +31,6 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.repeat;
 
 public class HHServerConnectorGracefulTest {
 
@@ -71,7 +73,9 @@ public class HHServerConnectorGracefulTest {
 
   @Test
   public void testHHServerConnectorWaitsPendingRequests() throws Exception {
-    repeat(100, () -> {
+    for (int i = 0; i < 100; i++) {
+      System.out.println("Running iteration " + i + " of 100");
+
       ControlledServlet controlledServlet = new ControlledServlet(204);
       Server server = createServer(controlledServlet);
       server.addConnector(new HHServerConnector(server));
@@ -94,6 +98,7 @@ public class HHServerConnectorGracefulTest {
         new Socket("localhost", serverPort);
         fail("connection was not refused after server begin to stop");
       } catch (ConnectException e) {
+        //
       }
 
       controlledServlet.respond();
@@ -104,11 +109,29 @@ public class HHServerConnectorGracefulTest {
 
       idleSocket.close();
       requestSocket.close();
-    });
+    }
+  }
+
+  private static Server createServer(Servlet servlet) {
+    var servletHandler = new ServletHandler();
+    var servletContextHandler = new ServletContextHandler();
+
+    servletHandler.addServletWithMapping(new ServletHolder("MainServlet", servlet), "/*");
+    servletContextHandler.setServletHandler(servletHandler);
+
+    var server = new Server();
+    server.setHandler(servletContextHandler);
+    server.setStopAtShutdown(true);
+    server.setStopTimeout(STOP_TIMEOUT_MS);
+
+    return server;
+  }
+
+  private static int getPort(Server server) {
+    return ((NetworkConnector) server.getConnectors()[0]).getLocalPort();
   }
 
   static class ControlledServlet extends GenericServlet {
-
     private final int responseCode;
 
     private final BlockingQueue<CountDownLatch> arrivedRequests = new LinkedBlockingQueue<>();
@@ -139,12 +162,6 @@ public class HHServerConnectorGracefulTest {
     void respond() {
       readyToProceedRequests.remove().countDown();
     }
-  }
-
-  private static Server createServer(Servlet servlet) {
-    Server server = HHServerConnectorTestUtils.createServer(null, servlet);
-    server.setStopTimeout(STOP_TIMEOUT_MS);
-    return server;
   }
 
   private static Future<Void> stop(Server server) {
